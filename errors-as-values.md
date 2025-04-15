@@ -1,6 +1,6 @@
 ### How Go's error handling is better
 
-In many programming languages like java and javascript, errors are special.They are handled using fancy syntax like try and catch statements but often end up becoming messy or confusing.
+In programming languages like java and javascript, errors are special. They are handled using fancy syntax like try and catch statements but often end up becoming messy or confusing.
 
 Here is an example a file copying program written in javascript:
 
@@ -15,9 +15,12 @@ try {
 }
 ```
 
-In the above program we try to read a text file whose name is provided as an stdin argument to the program and write its contents to a second file whose name is also provided as the second argument
+In the above program we try to read a text file whose name is provided as an stdin argument to the program and write its contents to a second file whose name is also provided as the second stdin argument
 
-The problem in this program is that we do not know where the error occured, was it the readFileSync function that returned an error? or was it writeFileSync? The error could be anything. 
+```
+> node copy.js file1.txt file2.txt
+```
+The problem with this program is that if it crashed, we would not know where the error occurred from. Would it be from the readFileSync function or writeFileSync? In this scenario we are left to speculate about where error could have been thrown. 
 
 We could try and handle errors using callbacks forexample:
 
@@ -27,12 +30,14 @@ fs.readFile(argv[2], "utf-8",(err, data)=>{
         console.error(err)
     }
     fs.writeFile(argv[3], data, err=>{
-        console.log(err)
+	if(err){
+	   console.log(err)
+	}
     })
 })
 ```
 
-but this approach quicky leads to callback hell when working with multiple risky functions.
+but this approach quickly leads to callback hell when working with multiple risky functions.
 
 However when it comes to Go, we are forced to think about the errors returned on each step of the way. Here is the same program now written Go.
 
@@ -47,15 +52,13 @@ import (
 func main() {
 	data, readErr := os.ReadFile(os.Args[1])
 	if readErr != nil {
-		//do something with the read error
 		log.Fatal(readErr)
 	}
 	writeErr := os.WriteFile(os.Args[2], data, 0600)
 	if writeErr != nil {
-		//do something with the write error
 		log.Fatal(writeErr)
 	}
 }
 ```
 
-We handle errors as any other value by checking if they are equivalent to null or nil in Go's case. This provides clarity as to where the error is coming from and also allows more flexibility in handling the error.
+In Go, we handle errors like any other value. This provides clarity into where the errors are coming from and how to handle them.
